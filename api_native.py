@@ -4,7 +4,6 @@ from functools import wraps
 from flask import Blueprint, abort, g, jsonify, request, url_for
 from peewee import DoesNotExist
 
-from config import UPLOAD_HOST
 from db import File, User
 from files import FileMapper
 
@@ -52,7 +51,7 @@ def upload_file():
     storage_dir = os.path.dirname(storage_path)
     if not os.path.exists(storage_dir):
         try:
-            os.makedirs(storage_dir)
+            os.makedirs(storage_dir, 0o750)
         except OSError:
             if not os.path.exists(storage_dir):
                 raise
@@ -60,8 +59,9 @@ def upload_file():
 
     return jsonify(**{
         'status': 'pshuu~',
-        'share_url': UPLOAD_HOST + url_for('files.get_file',
-                                           name=file_mapper.b62_encode(file_id),
-                                           key=file_key),
+        'share_url': url_for('files.get_file',
+                             name=file_mapper.b62_encode(file_id),
+                             key=file_key,
+                             _external=True),
         'delete_url': ''
     })
