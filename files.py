@@ -2,6 +2,7 @@ import hashlib
 import hmac
 import os
 from base64 import urlsafe_b64encode
+from urllib.parse import quote
 
 from flask import Blueprint, abort, send_file
 from peewee import DoesNotExist
@@ -20,10 +21,14 @@ def get_file(name, key):
     try:
         file_id = FileMapper.b62_decode(name)
         file = File.get(File.id == file_id)
+
         if file.file_key is None or file.file_key == key:
-            return send_file(
-                FileMapper.get_storage_path(file_id),
-                mimetype=file.content_type)
+            response = send_file(FileMapper.get_storage_path(file_id),
+                                 mimetype=file.content_type)
+            response.headers['Content-Disposition'] = (
+                "inline;filename*=UTF-8''{}".format(
+                    quote(file.original_filename)))
+            return response
     except (ValueError, DoesNotExist):
         abort(404)
 
