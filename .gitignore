@@ -1,0 +1,7 @@
+.idea
+venv/
+
+config.py
+Makefile.appconfig
+pshuu.db
+uploads/

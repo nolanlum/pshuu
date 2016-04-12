@@ -1,0 +1,2 @@
+# TCP address uwsgi should bind to.
+BIND = 127.0.0.1:9000

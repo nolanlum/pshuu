@@ -1,0 +1,27 @@
+# Flask secret key for session support.
+# This is also the key used to generate URLs.
+SECRET_KEY = 'your secret key'
+
+# Database configuration dict, passed to peewee.
+DATABASE = {
+    'name': 'pshuu.db',
+    'engine': 'SqliteDatabase'
+}
+
+# Directory where uploads go.
+UPLOAD_DIRECTORY = 'uploads'
+
+# Host where uploaded files can be accessed.
+UPLOAD_HOST = 'https://pshuu.moe'
+
+# Whether or not Flask is behind a HTTP proxy.
+# Affects whether or not we insert proxy middleware.
+FLASK_PROXY = False
+
+# Debug options you shouldn't touch
+DEBUG_PROFILER = False
+DEBUG = True
+
+# Whether or not to pretty-print all JSON output.
+# (By default only X-Requested-With: XMLHttpRequest suppresses pretty-printing.)
+JSONIFY_PRETTYPRINT_REGULAR = False
