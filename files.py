@@ -57,7 +57,7 @@ class FileMapper(object):
     def get_storage_path(file_id):
         file_id = "{:08x}".format(file_id)
         return os.path.join(
-            UPLOAD_DIRECTORY, file_id[:2], file_id[2:4], file_id[5:])
+            UPLOAD_DIRECTORY, file_id[:2], file_id[2:4], file_id[4:])
 
     @staticmethod
     def b62_encode(number):
