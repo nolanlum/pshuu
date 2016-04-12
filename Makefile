@@ -41,5 +41,5 @@ ensure-stopped:
 restart: stop start
 
 init-python:
-	virtualenv --python=python3 --no-site-packages $(VENV_NAME)
+	python3 -m venv $(VENV_NAME)
 	$(VENV)/bin/pip install -r requirements.txt
