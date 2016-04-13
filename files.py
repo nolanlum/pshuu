@@ -21,6 +21,8 @@ def get_file(name, key):
         file_id = FileMapper.b62_decode(name)
         file = File.get(File.id == file_id)
 
+        key, _ = os.path.splitext(key)
+
         if file.file_key is None or file.file_key == key:
             response = send_file(FileMapper.get_storage_path(file_id),
                                  mimetype=file.content_type)

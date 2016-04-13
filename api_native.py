@@ -1,3 +1,4 @@
+import os
 from functools import wraps
 
 from flask import Blueprint, abort, g, jsonify, request, url_for
@@ -26,13 +27,14 @@ def require_valid_api_key(f):
 @require_valid_api_key
 def upload_file():
     file = handle_file_upload(g.user, request.files['f'])
+    _, file_ext = os.path.splitext(file.original_filename)
 
     return jsonify(**{
         'status': 'pshuu~',
         'share_url': url_for('files.get_file',
                              name=FileMapper.b62_encode(file.id),
                              key=file.file_key,
-                             _external=True),
+                             _external=True) + file_ext,
         'delete_url': url_for('api_native.delete_file',
                               file_id=FileMapper.b62_encode(file.id),
                               key=FileMapper.get_delete_key(file.id),

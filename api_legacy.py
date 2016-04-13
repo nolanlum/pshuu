@@ -1,3 +1,5 @@
+import os
+
 from flask import Blueprint, g, request, url_for
 from peewee import DoesNotExist
 
@@ -36,15 +38,17 @@ def auth():
 @require_valid_api_key
 def upload():
     file = handle_file_upload(g.user, request.files['f'])
+    _, file_ext = os.path.splitext(file.original_filename)
 
     # Really, who knows what these fields mean.
     # Though, setting the first number to non-zero means the URL isn't
     # checked to contain puu.sh?????
-    return "1,{share_host}{share_url},{file.id},0".format(
+    return "1,{share_host}{share_url}{file_ext},{file.id},0".format(
         share_host=LEGACY_URL_HOST,
         share_url=url_for('files.get_file',
                           name=FileMapper.b62_encode(file.id),
                           key=file.file_key),
+        file_ext=file_ext,
         file=file
     )
 
