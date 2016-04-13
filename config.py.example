@@ -1,5 +1,7 @@
 # Flask secret key for session support.
-# This is also the key used to generate URLs.
+# This is also the key used to generate the file key used in URLs.
+# Changing this will invalidate any delete URLs generated, but file URLs will
+# continue to be valid.
 SECRET_KEY = 'your secret key'
 
 # Database configuration dict, passed to peewee.

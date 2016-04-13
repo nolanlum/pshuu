@@ -40,12 +40,55 @@ def index():
     return files.send_static_file('pshuu.webm')
 
 
+def handle_file_upload(user, file):
+    file_mapper = FileMapper(user)
+    if not file:
+        abort(400)
+
+    # Get ID for file.
+    file_entry = File.create(
+        user=user,
+        original_filename=file.filename,
+        content_type=file.content_type or None)
+    file_entry.save()
+
+    # Generate file key based on username and ID and update record.
+    file_key = file_mapper.get_file_key(file_entry.id)
+    file_entry.file_key = file_key
+    file_entry.save()
+
+    # Ensure path to save exists and save file.
+    storage_path = file_mapper.get_storage_path(file_entry.id)
+    storage_dir = os.path.dirname(storage_path)
+    if not os.path.exists(storage_dir):
+        try:
+            os.makedirs(storage_dir, 0o750)
+        except OSError:
+            # OSError can occur if the directory already exists, so...
+            if not os.path.exists(storage_dir):
+                raise
+    file.save(storage_path)
+
+    return file_entry
+
+
+def handle_file_delete(file_id):
+    try:
+        file_entry = File.get(File.id == file_id)
+
+        os.unlink(FileMapper.get_storage_path(file_id))
+        file_entry.delete_instance()
+    except DoesNotExist:
+        abort(404)
+
+
 class FileMapper(object):
     """
     Map between the actual name where files are stored, and the URL name/key
     returned to the client.
     """
     FILE_KEY_LENGTH = 6
+    DELETE_KEY_LENGTH = 20
 
     def __init__(self, user):
         self.username = bytes(user.username, 'utf-8')
@@ -56,7 +99,14 @@ class FileMapper(object):
         h.update(b'/')
         h.update(bytes((file_id,)))
         h = h.digest()
-        return urlsafe_b64encode(h)[:self.FILE_KEY_LENGTH]
+        return str(urlsafe_b64encode(h)[:self.FILE_KEY_LENGTH], 'utf8')
+
+    @staticmethod
+    def get_delete_key(file_id):
+        h = hmac.new(bytes(SECRET_KEY, 'utf-8'), digestmod=hashlib.sha256)
+        h.update(bytes((file_id,)))
+        h = h.digest()
+        return str(urlsafe_b64encode(h)[:FileMapper.DELETE_KEY_LENGTH], 'utf8')
 
     @staticmethod
     def get_storage_path(file_id):

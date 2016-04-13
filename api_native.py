@@ -1,11 +1,10 @@
-import os
 from functools import wraps
 
 from flask import Blueprint, abort, g, jsonify, request, url_for
 from peewee import DoesNotExist
 
-from db import File, User
-from files import FileMapper
+from db import User
+from files import FileMapper, handle_file_upload, handle_file_delete
 
 api_native = Blueprint('api_native', __name__, template_folder='templates')
 
@@ -26,42 +25,31 @@ def require_valid_api_key(f):
 @api_native.route('/upload', methods=['POST'])
 @require_valid_api_key
 def upload_file():
-    file_mapper = FileMapper(g.user)
-
-    # Ensure file was uploaded.
-    file = request.files['f']
-    if not file:
-        abort(400)
-
-    # Get ID for file.
-    file_entry = File().create(
-        user=g.user,
-        original_filename=file.filename,
-        content_type=file.content_type or None)
-    file_entry.save()
-
-    # Generate file key based on username and ID and update record.
-    file_id = file_entry.id
-    file_key = file_mapper.get_file_key(file_id)
-    file_entry.file_key = file_key
-    file_entry.save()
-
-    # Ensure path to save exists and save file.
-    storage_path = file_mapper.get_storage_path(file_id)
-    storage_dir = os.path.dirname(storage_path)
-    if not os.path.exists(storage_dir):
-        try:
-            os.makedirs(storage_dir, 0o750)
-        except OSError:
-            if not os.path.exists(storage_dir):
-                raise
-    file.save(storage_path)
+    file = handle_file_upload(g.user, request.files['f'])
 
     return jsonify(**{
         'status': 'pshuu~',
         'share_url': url_for('files.get_file',
-                             name=file_mapper.b62_encode(file_id),
-                             key=file_key,
+                             name=FileMapper.b62_encode(file.id),
+                             key=file.file_key,
                              _external=True),
-        'delete_url': ''
+        'delete_url': url_for('api_native.delete_file',
+                              file_id=FileMapper.b62_encode(file.id),
+                              key=FileMapper.get_delete_key(file.id),
+                              _external=True)
     })
+
+
+@api_native.route('/delete/<file_id>/<key>', methods=['GET'])
+def delete_file(file_id, key):
+    try:
+        file_id = FileMapper.b62_decode(file_id)
+        file_key = FileMapper.get_delete_key(file_id)
+
+        if not key == file_key:
+            abort(404)
+    except (ValueError, DoesNotExist):
+        abort(404)
+
+    handle_file_delete(file_id)
+    return jsonify(**{'status': 'pshuu~'})
