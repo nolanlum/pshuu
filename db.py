@@ -1,4 +1,6 @@
-from peewee import CharField, ForeignKeyField
+import datetime
+
+from peewee import CharField, ForeignKeyField, DateTimeField
 from playhouse.flask_utils import FlaskDB
 
 database = FlaskDB()
@@ -14,5 +16,6 @@ class File(database.Model):
     original_filename = CharField()
     file_key = CharField(null=True)
     content_type = CharField(null=True)
+    upload_time = DateTimeField(default=datetime.datetime.now)
 
 models = [User, File]
