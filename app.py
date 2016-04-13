@@ -18,8 +18,10 @@ def create():
     app = Flask(__name__)
     app.config.from_object(config)
 
+    from api_legacy import api_legacy
     from api_native import api_native
     from files import files
+    app.register_blueprint(api_legacy, url_prefix='/api')
     app.register_blueprint(api_native)
     app.register_blueprint(files)
 

@@ -10,8 +10,7 @@ from peewee import DoesNotExist
 from config import UPLOAD_DIRECTORY, SECRET_KEY
 from db import File
 
-files = Blueprint('files', __name__, template_folder='templates',
-                  static_folder='static')
+files = Blueprint('files', __name__, static_folder='static')
 
 B62_ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
 
@@ -72,14 +71,17 @@ def handle_file_upload(user, file):
     return file_entry
 
 
-def handle_file_delete(file_id):
+def handle_file_delete(file_id=None, file_entry=None):
     try:
-        file_entry = File.get(File.id == file_id)
+        if not file_entry:
+            file_entry = File.get(File.id == file_id)
 
-        os.unlink(FileMapper.get_storage_path(file_id))
+        os.unlink(FileMapper.get_storage_path(file_entry.id))
         file_entry.delete_instance()
+
+        return True
     except DoesNotExist:
-        abort(404)
+        return False
 
 
 class FileMapper(object):

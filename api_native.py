@@ -6,7 +6,7 @@ from peewee import DoesNotExist
 from db import User
 from files import FileMapper, handle_file_upload, handle_file_delete
 
-api_native = Blueprint('api_native', __name__, template_folder='templates')
+api_native = Blueprint('api_native', __name__)
 
 
 def require_valid_api_key(f):
@@ -51,5 +51,7 @@ def delete_file(file_id, key):
     except (ValueError, DoesNotExist):
         abort(404)
 
-    handle_file_delete(file_id)
-    return jsonify(**{'status': 'pshuu~'})
+    if handle_file_delete(file_id=file_id):
+        return jsonify(**{'status': 'pshuu~'})
+    else:
+        abort(404)

@@ -13,6 +13,9 @@ DATABASE = {
 # Directory where uploads go.
 UPLOAD_DIRECTORY = 'uploads'
 
+# The URL scheme and host to use when constructing legacy share links.
+LEGACY_URL_HOST = 'https://pshuu.moe'
+
 # Whether or not Flask is behind a HTTP proxy.
 # Affects whether or not we insert proxy middleware.
 FLASK_PROXY = False
