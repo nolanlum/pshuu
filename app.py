@@ -27,5 +27,4 @@ def create():
     return app
 
 if __name__ == '__main__':
-    # add_user()
     create().run(host='0.0.0.0', debug=True)
