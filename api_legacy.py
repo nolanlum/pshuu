@@ -62,9 +62,10 @@ def _generate_hist(user):
     return '0\n' + '\n'.join((
         # I also have no idea what this last zero is.
         # The one before that is the file's view count.
-        "{file.id},{file.upload_time:%Y-%m-%d %H:%M:%S},{share_url},"
-        "{file.original_filename},0,0".format(
+        "{file.id},{file.upload_time:%Y-%m-%d %H:%M:%S},"
+        "{share_host}{share_url},{file.original_filename},0,0".format(
             file=file,
+            share_host=LEGACY_URL_HOST,
             share_url=url_for('files.get_file',
                               name=FileMapper.b62_encode(file.id),
                               key=file.file_key))
