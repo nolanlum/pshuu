@@ -1,7 +1,8 @@
 from binascii import hexlify
 from os import urandom
 
-from flask import Blueprint, abort, jsonify, render_template, request
+from flask import Blueprint
+from flask import abort, jsonify, render_template, redirect, request, url_for
 from peewee import DoesNotExist, IntegrityError
 
 from db import ProvisioningKey, User
@@ -30,13 +31,19 @@ def provision(key):
         except IntegrityError:
             return jsonify(**{'error': 'duplicate username or API key'})
 
-        return jsonify(**{
-            'Name': 'pshuu.moe',
-            'RequestType': 'POST',
-            'RequestURL': 'https://pshuu.moe/upload',
-            'FileFormName': 'f',
-            'Arguments': {'k': user.api_key},
-            'ResponseType': 'Text',
-            'URL': '$json:share_url$',
-            'DeletionURL': '$json:delete_url$'
-        })
+        return redirect(
+            url_for('frontend.provision_sharex', api_key=user.api_key))
+
+
+@frontend.route('/provision/<api_key>/custom_uploader.json', methods=['GET'])
+def provision_sharex(api_key):
+    return jsonify(**{
+        'Name': 'pshuu.moe',
+        'RequestType': 'POST',
+        'RequestURL': 'https://pshuu.moe/upload',
+        'FileFormName': 'f',
+        'Arguments': {'k': api_key},
+        'ResponseType': 'Text',
+        'URL': '$json:share_url$',
+        'DeletionURL': '$json:delete_url$'
+    })
