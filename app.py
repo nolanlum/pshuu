@@ -4,16 +4,6 @@ from werkzeug.contrib.fixers import ProxyFix
 import config
 
 
-def add_user():
-    username = input('Username: ')
-    api_key = input('API Key: ')
-
-    create()
-
-    from db import User
-    User().create(username=username, api_key=api_key).save()
-
-
 def create():
     app = Flask(__name__)
     app.config.from_object(config)
@@ -21,9 +11,11 @@ def create():
     from api_legacy import api_legacy
     from api_native import api_native
     from files import files
+    from frontend import frontend
     app.register_blueprint(api_legacy, url_prefix='/api')
     app.register_blueprint(api_native)
     app.register_blueprint(files)
+    app.register_blueprint(frontend)
 
     from db import models, database
     database.init_app(app)

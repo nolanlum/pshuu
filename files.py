@@ -51,7 +51,6 @@ def handle_file_upload(user, file):
         user=user,
         original_filename=file.filename,
         content_type=file.content_type or None)
-    file_entry.save()
 
     # Generate file key based on username and ID and update record.
     file_key = file_mapper.get_file_key(file_entry.id)

@@ -18,4 +18,8 @@ class File(database.Model):
     content_type = CharField(null=True)
     upload_time = DateTimeField(default=datetime.datetime.now)
 
-models = [User, File]
+
+class ProvisioningKey(database.Model):
+    key = CharField(primary_key=True, max_length=40)
+
+models = [User, File, ProvisioningKey]

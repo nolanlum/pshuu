@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Provision API Key{% endblock %}
+{% block content %}
+<div class="signup-container">
+    <div class="signup">
+        <form class="pure-form pure-form-aligned" method="POST">
+            <fieldset>
+                <legend style="font-size: x-large;">Provision pshuu.me API key</legend>
+
+                <div class="pure-control-group">
+                    <label for="username">Username</label>
+                    <input name="username" type="text" class="pure-input-1-2" placeholder="Username">
+                </div>
+                <div class="pure-control-group">
+                    <label for="api_key">API key</label>
+                    <input name="api_key" type="text" class="pure-input-1-2" placeholder="API key" value="{{ api_key }}">
+                </div>
+
+                <div class="pure-controls">
+                    <button type="submit" class="pure-button pure-button-primary">Create Key</button>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+</div>
+{% endblock %}

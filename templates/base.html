@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% block head %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/g/pure@0.6.0(base-min.css+buttons-min.css+forms-min.css)">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+
+    <title>{{ self.title() + " — " if self.title() }}pshuu.moe</title>
+    {% endblock %}
+</head>
+<body>
+{% block content %}
+{% endblock %}
+</body>
+</html>
