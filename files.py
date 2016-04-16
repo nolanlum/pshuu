@@ -1,10 +1,12 @@
+from functools import lru_cache
+
 import hashlib
 import hmac
 import os
 from base64 import urlsafe_b64encode
 from urllib.parse import quote
 
-from flask import Blueprint, abort, send_file
+from flask import Blueprint, abort, send_file, url_for
 from peewee import DoesNotExist
 
 from config import UPLOAD_DIRECTORY, SECRET_KEY
@@ -16,14 +18,14 @@ B62_ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
 
 
 @files.route('/<name>/<key>', methods=['GET'])
-def get_file(name, key):
+def get_file(name, key=None):
     try:
         file_id = FileMapper.b62_decode(name)
         file = File.get(File.id == file_id)
 
         key, _ = os.path.splitext(key)
 
-        if file.file_key is None or file.file_key == key:
+        if file.file_key == key:
             response = send_file(FileMapper.get_storage_path(file_id),
                                  mimetype=file.content_type)
             response.headers['Content-Disposition'] = (
@@ -39,6 +41,14 @@ def get_file(name, key):
 @files.route('/')
 def index():
     return files.send_static_file('pshuu.webm')
+
+
+def url_for_file(file):
+    _, file_ext = os.path.splitext(file.original_filename)
+    return url_for('files.get_file',
+                   name=FileMapper.b62_encode(file.id),
+                   key=file.file_key,
+                   _external=True) + file_ext
 
 
 def handle_file_upload(user, file):
