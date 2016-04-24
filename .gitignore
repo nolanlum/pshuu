@@ -1,7 +1,11 @@
 .idea
+node_modules/
 venv/
 
 config.py
 Makefile.appconfig
 pshuu.db
+thumbs/
 uploads/
+
+static/js/

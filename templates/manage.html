@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Manage{% endblock %}
+{% block head %}
+{{ super() }}
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/react/15.0.1/react.js"></script>
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/react/15.0.1/react-dom.js"></script>
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
+{% endblock %}
+{% block content %}
+<div id="content">
+</div>
+<script type="text/javascript">var list_url = "{{ url_for('api_native.list_files', k=api_key) }}";</script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/frontend.js') }}"></script>
+{% endblock %}

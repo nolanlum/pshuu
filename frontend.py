@@ -47,3 +47,8 @@ def provision_sharex(api_key):
         'URL': '$json:share_url$',
         'DeletionURL': '$json:delete_url$'
     })
+
+
+@frontend.route('/manage/<api_key>', methods=['GET'])
+def manage(api_key):
+    return render_template('manage.html', api_key=api_key)

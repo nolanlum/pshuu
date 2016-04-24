@@ -40,3 +40,37 @@ html {
     margin: -125px 0 0 -350px;
     padding: 10px;
 }
+
+.uploads-table {
+    width: 800px;
+
+    margin: 0 auto;
+}
+
+.uploads-table thead {
+    font-weight: bold;
+    font-size: larger;
+}
+
+.uploads-table tbody tr {
+    height: 64px;
+}
+
+.uploads-table tbody tr a {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.uploads-table tbody tr:nth-child(odd) {
+    background-color: rgba(210, 210, 210, 0.5);
+}
+
+.uploads-table tbody tr:hover {
+    background-color: rgba(250, 250, 210, 0.5);
+}
+
+.uploads-table tbody td a {
+    height: 64px;
+    line-height: 64px;
+}

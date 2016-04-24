@@ -1,15 +1,15 @@
-from functools import lru_cache
-
 import hashlib
 import hmac
 import os
 from base64 import urlsafe_b64encode
 from urllib.parse import quote
 
-from flask import Blueprint, abort, send_file, url_for
+from flask import Blueprint
+from flask import abort, request, send_file, url_for
 from peewee import DoesNotExist
+from PIL import Image
 
-from config import UPLOAD_DIRECTORY, SECRET_KEY
+from config import UPLOAD_DIRECTORY, SECRET_KEY, THUMBS_DIRECTORY
 from db import File
 
 files = Blueprint('files', __name__, static_folder='static')
@@ -18,7 +18,7 @@ B62_ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
 
 
 @files.route('/<name>/<key>', methods=['GET'])
-def get_file(name, key=None):
+def get_file(name, key):
     try:
         file_id = FileMapper.b62_decode(name)
         file = File.get(File.id == file_id)
@@ -26,13 +26,16 @@ def get_file(name, key=None):
         key, _ = os.path.splitext(key)
 
         if file.file_key == key:
-            response = send_file(FileMapper.get_storage_path(file_id),
-                                 mimetype=file.content_type)
-            response.headers['Content-Disposition'] = (
-                "inline;filename*=UTF-8''{}".format(
-                    quote(file.original_filename)))
-            return response
-    except (ValueError, DoesNotExist):
+            if 'thumb' in request.args:
+                return handle_thumbnail_generation(file.id)
+            else:
+                response = send_file(FileMapper.get_storage_path(file_id),
+                                     mimetype=file.content_type)
+                response.headers['Content-Disposition'] = (
+                    "inline;filename*=UTF-8''{}".format(
+                        quote(file.original_filename)))
+                return response
+    except (ValueError, DoesNotExist, RuntimeError):
         abort(404)
 
     abort(404)
@@ -49,6 +52,17 @@ def url_for_file(file):
                    name=FileMapper.b62_encode(file.id),
                    key=file.file_key,
                    _external=True) + file_ext
+
+
+def ensure_path_exists(storage_path):
+    storage_dir = os.path.dirname(storage_path)
+    if not os.path.exists(storage_dir):
+        try:
+            os.makedirs(storage_dir, 0o750)
+        except OSError:
+            # OSError can occur if the directory already exists, so...
+            if not os.path.exists(storage_dir):
+                raise
 
 
 def handle_file_upload(user, file):
@@ -69,14 +83,7 @@ def handle_file_upload(user, file):
 
     # Ensure path to save exists and save file.
     storage_path = file_mapper.get_storage_path(file_entry.id)
-    storage_dir = os.path.dirname(storage_path)
-    if not os.path.exists(storage_dir):
-        try:
-            os.makedirs(storage_dir, 0o750)
-        except OSError:
-            # OSError can occur if the directory already exists, so...
-            if not os.path.exists(storage_dir):
-                raise
+    ensure_path_exists(storage_path)
     file.save(storage_path)
 
     return file_entry
@@ -93,6 +100,23 @@ def handle_file_delete(file_id=None, file_entry=None):
         return True
     except DoesNotExist:
         return False
+
+
+def handle_thumbnail_generation(file_id):
+    thumbnail_path = FileMapper.get_thumb_path(file_id)
+
+    if not os.path.exists(thumbnail_path):
+        file_path = FileMapper.get_storage_path(file_id)
+        stat_info = os.stat(file_path)
+        im = Image.open(file_path)
+        im.thumbnail((64, 64), resample=Image.LANCZOS)
+
+        ensure_path_exists(thumbnail_path)
+        im.save(thumbnail_path, format='PNG', optimize=True)
+        os.utime(thumbnail_path,
+                 (stat_info.st_atime, stat_info.st_mtime))
+
+    return send_file(thumbnail_path, mimetype='image/png')
 
 
 class FileMapper(object):
@@ -126,6 +150,12 @@ class FileMapper(object):
         file_id = "{:08x}".format(file_id)
         return os.path.join(
             UPLOAD_DIRECTORY, file_id[:2], file_id[2:4], file_id[4:])
+
+    @staticmethod
+    def get_thumb_path(file_id):
+        file_id = "{:08x}".format(file_id)
+        return os.path.join(
+            THUMBS_DIRECTORY, file_id[:2], file_id[2:4], file_id[4:])
 
     @staticmethod
     def b62_encode(number):

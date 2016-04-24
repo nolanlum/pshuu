@@ -18,6 +18,8 @@ BIN = $(VENV)/bin/uwsgi
 
 RM = rm -f
 
+.PHONY: start stop ensure-stopped restart assets init-python init-npm
+
 start: ensure-stopped
 	$(BIN) \
 		--daemonize $(UWSGI_LOG) \
@@ -40,6 +42,14 @@ ensure-stopped:
 
 restart: stop start
 
+assets: static/js/frontend.js
+
+static/js/frontend.js: frontend.js
+	node node_modules/babel-cli/bin/babel.js --presets react -o static/js/frontend.js frontend.js
+
 init-python:
 	python3 -m venv $(VENV_NAME)
 	$(VENV)/bin/pip install -r requirements.txt
+
+init-npm:
+	npm install

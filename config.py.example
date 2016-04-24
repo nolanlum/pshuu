@@ -13,6 +13,9 @@ DATABASE = {
 # Directory where uploads go.
 UPLOAD_DIRECTORY = 'uploads'
 
+# Directory where thumbnails go.
+THUMBS_DIRECTORY = 'thumbs'
+
 # The URL scheme and host to use when constructing legacy share links.
 LEGACY_URL_HOST = 'https://pshuu.moe'
 
