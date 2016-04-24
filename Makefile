@@ -45,7 +45,7 @@ restart: stop start
 assets: static/js/frontend.js
 
 static/js/frontend.js: frontend.js
-	mkdir static/js 2>/dev/null
+	mkdir -p static/js
 	node node_modules/babel-cli/bin/babel.js --presets react -o static/js/frontend.js frontend.js
 
 init-python:
