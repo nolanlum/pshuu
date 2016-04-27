@@ -2,6 +2,7 @@ import hashlib
 import hmac
 import os
 from base64 import urlsafe_b64encode
+from struct import pack
 from urllib.parse import quote
 
 from flask import Blueprint
@@ -134,14 +135,14 @@ class FileMapper(object):
         h = hmac.new(bytes(SECRET_KEY, 'utf-8'), digestmod=hashlib.sha256)
         h.update(self.username)
         h.update(b'/')
-        h.update(bytes((file_id,)))
+        h.update(pack('<I', file_id))
         h = h.digest()
         return str(urlsafe_b64encode(h)[:self.FILE_KEY_LENGTH], 'utf8')
 
     @staticmethod
     def get_delete_key(file_id):
         h = hmac.new(bytes(SECRET_KEY, 'utf-8'), digestmod=hashlib.sha256)
-        h.update(bytes((file_id,)))
+        h.update(pack('<I', file_id))
         h = h.digest()
         return str(urlsafe_b64encode(h)[:FileMapper.DELETE_KEY_LENGTH], 'utf8')
 
