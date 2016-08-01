@@ -150,13 +150,13 @@ class FileMapper(object):
     def get_storage_path(file_id):
         file_id = "{:08x}".format(file_id)
         return os.path.join(
-            UPLOAD_DIRECTORY, file_id[:2], file_id[2:4], file_id[4:])
+            UPLOAD_DIRECTORY, file_id[:2], file_id[2:5], file_id[5:])
 
     @staticmethod
     def get_thumb_path(file_id):
         file_id = "{:08x}".format(file_id)
         return os.path.join(
-            THUMBS_DIRECTORY, file_id[:2], file_id[2:4], file_id[4:])
+            THUMBS_DIRECTORY, file_id[:2], file_id[2:5], file_id[5:])
 
     @staticmethod
     def b62_encode(number):
