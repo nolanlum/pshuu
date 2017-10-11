@@ -25,6 +25,7 @@ start: ensure-stopped
 		--daemonize $(UWSGI_LOG) \
 		--pidfile $(PIDFILE) \
 		--http-socket $(BIND) \
+		--log-x-forwarded-for \
 		-H $(VENV) \
 		-w $(APP_MODULE)
 
