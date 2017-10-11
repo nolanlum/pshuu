@@ -1,5 +1,6 @@
 import hashlib
 import hmac
+import mimetypes
 import os
 from base64 import urlsafe_b64encode
 from struct import pack
@@ -70,6 +71,11 @@ def handle_file_upload(user, file):
     file_mapper = FileMapper(user)
     if not file:
         abort(400)
+    
+    # Detect content type if not sent.
+    content_type = file.content_type
+    if not content_type:
+        content_type, _ = mimetypes.guess_type(file.filename)
 
     # Get ID for file.
     file_entry = File.create(
