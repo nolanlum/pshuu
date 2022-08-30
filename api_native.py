@@ -2,6 +2,7 @@ import os
 from functools import wraps
 
 from flask import Blueprint, abort, g, jsonify, request, url_for
+from flask_cors import cross_origin
 from peewee import DoesNotExist
 
 from db import File, User
@@ -40,6 +41,7 @@ def upload_file():
 
 
 @api_native.route('/delete/<file_id>/<key>', methods=['GET'])
+@cross_origin(origins='*')
 def delete_file(file_id, key):
     try:
         file_id = FileMapper.b62_decode(file_id)
@@ -57,6 +59,7 @@ def delete_file(file_id, key):
 
 
 @api_native.route('/list', methods=['GET', 'POST'])
+@cross_origin(origins='*')
 def list_files():
     putative_key = request.args.get('k') or request.form.get('k')
     try:

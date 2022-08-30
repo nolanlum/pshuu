@@ -17,6 +17,12 @@ def create():
     app.register_blueprint(files)
     app.register_blueprint(frontend)
 
+    @app.route('/healthcheck')
+    def healthcheck():
+        response = app.make_response('ok')
+        response.mimetype = 'text/plain'
+        return response
+
     from db import models, database
     database.init_app(app)
     database.database.create_tables(models, safe=True)
