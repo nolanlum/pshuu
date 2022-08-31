@@ -1,29 +1,70 @@
-var UploadList = React.createClass({
-    getInitialState: function() {
-        return {
-            'files': {}
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+
+import InfiniteScroll from 'react-infinite-scroll-component';
+
+
+const listPageSize = 25;
+
+class UploadList extends React.PureComponent {
+    constructor(props) {
+        super(props);
+        this.state = {
+            page: 0,
+            hasMore: true,
+            files: {},
         };
-    },
+    }
 
-    componentDidMount: function() {
-        this.serverRequest = $.get(this.props.url, function (result) {
-            if (result.status !== "pshuu~") {
-                alert("well poop.");
-            }
+    componentDidMount() {
+        const nextPage = this.props.atPage + 1;
+        this.fetchData(nextPage, 0, nextPage * listPageSize);
+    }
 
-            this.setState({
-                files: result.files
+    fetchMoreData = () => {
+        const nextPage = this.state.page + 1;
+        const limit = listPageSize;
+        const offset = listPageSize * this.state.page;
+
+        this.fetchData(nextPage, limit, offset)
+            .then(_ => {
+                const newQuery = '?' + new URLSearchParams({page: nextPage});
+                window.history.replaceState({}, '', window.location.pathname + newQuery)
             });
-        }.bind(this));
-    },
+    }
 
-    componentWillUnmount: function() {
-        this.serverRequest.abort();
-    },
+    fetchData = (nextPage, offset, limit) => {
+        const queryParams = {
+            offset: offset,
+            limit: limit,
+        };
 
-    render: function() {
-        var fileRows = Object
-            .keys(this.state.files)
+        return fetch(this.props.url + '&' + new URLSearchParams(queryParams))
+            .then(res => res.json())
+            .then(
+                (result) => {
+                    if (result.status !== 'pshuu~') {
+                        alert("well poop.");
+                    }
+
+                    this.setState({
+                        page: nextPage,
+                        hasMore: Object.keys(result.files).length === limit,
+                        files: {
+                            ...this.state.files,
+                            ...result.files,
+                        },
+                    });
+                },
+                (error) => {
+                    alert("well poop.");
+                }
+            );
+    }
+
+    render() {
+        const fileIds = Object.keys(this.state.files);
+        const fileRows = fileIds
             .sort(function(a, b) {
                 a = parseInt(a);
                 b = parseInt(b);
@@ -37,31 +78,32 @@ var UploadList = React.createClass({
             }.bind(this));
 
         return (
-            <table className="uploads-table">
+            <InfiniteScroll
+              dataLength={fileIds.length}
+              next={this.fetchMoreData}
+              hasMore={this.state.hasMore}
+              loader={<h4 style={{ textAlign: 'center' }}>Loading...</h4>}
+            >
+              <table className="uploads-table">
                 <thead>
-                    <tr>
-                        <td style={{ textAlign: 'left', minWidth: '68px' }}>&nbsp;</td>
-                        <td style={{ width: '100%' }}>Filename</td>
-                        <td style={{ minWidth: '10em' }}>Upload time</td>
-                    </tr>
+                  <tr>
+                    <td style={{ textAlign: 'left', minWidth: '68px' }}>&nbsp;</td>
+                    <td style={{ width: '100%' }}>Filename</td>
+                    <td style={{ minWidth: '10em' }}>Upload time</td>
+                  </tr>
                 </thead>
                 <tbody>
                     {fileRows}
                 </tbody>
-            </table>
+              </table>
+            </InfiniteScroll>
         );
     }
-});
+}
 
-var Upload = React.createClass({
-    getInitialState: function() {
-        return {
-            selected: false
-        };
-    },
-
-    render: function() {
-        var thumb_url = this.props.url + "?thumb";
+class Upload extends React.PureComponent {
+    render() {
+        const thumb_url = this.props.url + '?thumb';
         return (
             <tr>
                 <td><img src={thumb_url} alt={this.props.filename} /></td>
@@ -70,9 +112,10 @@ var Upload = React.createClass({
             </tr>
         );
     }
-});
+}
 
-ReactDOM.render(
-    <UploadList url={list_url} />,
-    document.getElementById('content')
-);
+const pageParam = Number.parseInt(new URLSearchParams(window.location.search).get('page'), 10);
+const startingPage = !Number.isNaN(pageParam) && pageParam > -1 ? pageParam : 0;
+
+const root = createRoot(document.getElementById('content'));
+root.render(<UploadList url={list_url} atPage={startingPage} />);

@@ -45,9 +45,9 @@ restart: stop start
 
 assets: static/js/frontend.js
 
-static/js/frontend.js: frontend.js
+static/js/frontend.js: frontend.js package.json webpack.config.js
 	mkdir -p static/js
-	node node_modules/babel-cli/bin/babel.js --presets react -o static/js/frontend.js frontend.js
+	npx webpack
 
 init-python:
 	python3 -m venv $(VENV_NAME)

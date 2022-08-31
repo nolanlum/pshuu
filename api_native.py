@@ -69,12 +69,26 @@ def list_files():
 
     if user is None:
         return jsonify(status='not authorized'), 403
-    else:
-        return jsonify(
-            status='pshuu~',
-            files={
-                f.id: {'original_filename': f.original_filename,
-                       'upload_time': f.upload_time,
-                       'url': url_for_file(f)
-                       }
-                for f in File.select().where(File.user == user)})
+
+    try:
+        limit = int(request.args.get('limit') or request.form.get('limit'))
+    except TypeError:
+        limit = 25
+    try:
+        offset = int(request.args.get('offset') or request.form.get('offset'))
+    except TypeError:
+        offset = 0
+
+    return jsonify(
+        status='pshuu~',
+        files={
+            f.id: {'original_filename': f.original_filename,
+                    'upload_time': f.upload_time,
+                    'url': url_for_file(f)
+                    }
+            for f in File.select()
+                .where(File.user == user)
+                .order_by(File.id.desc())
+                .limit(limit)
+                .offset(offset)
+        })
