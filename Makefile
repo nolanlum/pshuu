@@ -6,7 +6,7 @@ include Makefile.appconfig
 
 APP_MODULE = "app:create()"
 PIDFILE = app.pid
-VENV_NAME = venv
+VENV_NAME = .venv
 UWSGI_LOG = uwsgi.log
 
 # None of your business
@@ -18,7 +18,7 @@ BIN = $(VENV)/bin/uwsgi
 
 RM = rm -f
 
-.PHONY: start stop ensure-stopped restart assets init-python init-npm
+.PHONY: start stop ensure-stopped restart assets init-python init-npm test
 
 start: ensure-stopped
 	$(BIN) \
@@ -26,6 +26,14 @@ start: ensure-stopped
 		--pidfile $(PIDFILE) \
 		--http-socket $(BIND) \
 		--log-x-forwarded-for \
+		-H $(VENV) \
+		-w $(APP_MODULE)
+
+dev: ensure-stopped
+	$(BIN) \
+		--http-socket $(BIND) \
+		--log-x-forwarded-for \
+		--need-app \
 		-H $(VENV) \
 		-w $(APP_MODULE)
 
@@ -45,13 +53,16 @@ restart: stop start
 
 assets: static/js/frontend.js
 
-static/js/frontend.js: frontend.js package.json webpack.config.js
+static/js/frontend.js: frontend/src/frontend.jsx frontend/package.json frontend/vite.config.js
 	mkdir -p static/js
-	npx webpack
+	cd frontend && npm run build
 
 init-python:
-	python3 -m venv $(VENV_NAME)
-	$(VENV)/bin/pip install -r requirements.txt
+	uv sync
 
 init-npm:
-	npm install
+	cd frontend && npm install
+
+test:
+	uv sync --group dev
+	uv run pytest

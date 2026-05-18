@@ -1,11 +1,20 @@
+# editor files
 .idea
-node_modules/
-venv/
+.vscode
 
+# app config and state
 config.py
 Makefile.appconfig
+
+# app runtime
+__pycache__/
+.venv/
+frontend/node_modules/
+static/js/
+
+# app runtime state
+app.pid
 pshuu.db
 thumbs/
 uploads/
-
-static/js/
+uwsgi.log
