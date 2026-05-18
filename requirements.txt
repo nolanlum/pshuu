@@ -1,4 +1,0 @@
-flask
-Pillow
-peewee
-uwsgi

@@ -1,5 +1,5 @@
 from flask import Flask
-from werkzeug.contrib.fixers import ProxyFix
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 import config
 
@@ -25,12 +25,14 @@ def create():
 
     from db import models, database
     database.init_app(app)
-    database.database.create_tables(models, safe=True)
+    with database.database.connection_context():
+        database.database.create_tables(models, safe=True)
 
     if config.FLASK_PROXY:
         app.wsgi_app = ProxyFix(app.wsgi_app)
 
     return app
+
 
 if __name__ == '__main__':
     create().run(host='0.0.0.0', debug=True)
