@@ -29,7 +29,7 @@ start: ensure-stopped
 		-H $(VENV) \
 		-w $(APP_MODULE)
 
-dev: ensure-stopped
+dev: ensure-stopped assets
 	$(BIN) \
 		--http-socket $(BIND) \
 		--log-x-forwarded-for \

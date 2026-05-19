@@ -5,6 +5,7 @@ import pytest
 from PIL import Image
 
 from db import File
+from files import FileMapper
 
 
 def _path(url):
@@ -97,7 +98,64 @@ def test_list_requires_key_and_respects_pagination(client, make_user):
     assert payload["status"] == "pshuu~"
     assert len(payload["files"]) == 3
 
+    # Each entry exposes a b62 id consistent with its raw key.
+    for raw_id, entry in payload["files"].items():
+        assert FileMapper.b62_decode(entry["id"]) == int(raw_id)
+
     limited = client.get(
         "/list", query_string={"k": user.api_key, "limit": 1}
     )
     assert len(limited.get_json()["files"]) == 1
+
+
+def _b62_id(upload_body):
+    """Extract the b62 file id from an /upload share_url."""
+    return urlsplit(upload_body["share_url"]).path.strip("/").split("/")[0]
+
+
+def test_delete_own_file_requires_key(client, make_user):
+    user = make_user()
+    b62 = _b62_id(_upload(client, user.api_key).get_json())
+
+    assert client.post("/delete/%s" % b62).status_code == 403
+    assert (
+        client.post("/delete/%s" % b62, data={"k": "wrong"}).status_code
+        == 403
+    )
+    # File untouched after failed auth.
+    assert File.select().where(File.user == user).count() == 1
+
+
+def test_delete_own_file_success(client, make_user):
+    user = make_user()
+    body = _upload(client, user.api_key).get_json()
+    b62 = _b62_id(body)
+
+    resp = client.post("/delete/%s" % b62, data={"k": user.api_key})
+    assert resp.status_code == 200
+    assert resp.get_json()["status"] == "pshuu~"
+    assert File.select().where(File.user == user).count() == 0
+    assert client.get(_path(body["share_url"])).status_code == 404
+
+
+def test_delete_other_users_file_is_forbidden(client, make_user):
+    owner = make_user(username="owner", api_key="owner-key")
+    attacker = make_user(username="attacker", api_key="attacker-key")
+    b62 = _b62_id(_upload(client, owner.api_key).get_json())
+
+    # Valid api_key, but not the owner -> 404, file survives.
+    resp = client.post("/delete/%s" % b62, data={"k": attacker.api_key})
+    assert resp.status_code == 404
+    assert File.select().where(File.user == owner).count() == 1
+
+
+def test_delete_unknown_and_non_b62_id(client, make_user):
+    user = make_user()
+    assert (
+        client.post("/delete/zzzzzz", data={"k": user.api_key}).status_code
+        == 404
+    )
+    assert (
+        client.post("/delete/!!!", data={"k": user.api_key}).status_code
+        == 404
+    )

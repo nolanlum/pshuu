@@ -40,6 +40,21 @@ def upload_file():
                            _external=True))
 
 
+@api_native.route('/delete/<file_id>', methods=['POST'])
+@cross_origin(origins='*')
+@require_valid_api_key
+def delete_own_file(file_id):
+    try:
+        decoded = FileMapper.b62_decode(file_id)
+        entry = File.get((File.id == decoded) & (File.user == g.user))
+    except (ValueError, DoesNotExist):
+        abort(404)
+
+    if handle_file_delete(file_entry=entry):
+        return jsonify(status='pshuu~')
+    abort(404)
+
+
 @api_native.route('/delete/<file_id>/<key>', methods=['GET'])
 @cross_origin(origins='*')
 def delete_file(file_id, key):
@@ -82,7 +97,8 @@ def list_files():
     return jsonify(
         status='pshuu~',
         files={
-            f.id: {'original_filename': f.original_filename,
+            f.id: {'id': FileMapper.b62_encode(f.id),
+                    'original_filename': f.original_filename,
                     'upload_time': f.upload_time,
                     'url': url_for_file(f)
                     }
