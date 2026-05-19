@@ -26,3 +26,17 @@ updates:
     directory: "/frontend/"
     schedule:
       interval: "weekly"
+    groups:
+      react:
+        patterns:
+          - "react"
+          - "react-*"
+          - "@types/react"
+          - "@types/react-*"
+      vite:
+        patterns:
+          - "vite"
+          - "vite-*"
+          - "vitest"
+          - "@vitejs/*"
+          - "@vitest/*"
