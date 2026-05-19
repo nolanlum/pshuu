@@ -23,8 +23,8 @@ def auth():
 
     try:
         User.get(
-            User.username == request.form['e'] and
-            User.api_key == api_key)
+            (User.username == request.form['e']) &
+            (User.api_key == api_key))
 
         # Who knows what these fields mean.
         return '0,{api_key},,0'.format(
@@ -84,7 +84,8 @@ def hist():
 def delete():
     try:
         file_id = int(request.form['i'])
-        delete_file = File.get(File.user == g.user and File.id == file_id)
+        delete_file = File.get(
+            (File.user == g.user) & (File.id == file_id))
     except ValueError:
         return '-1'
     except DoesNotExist:

@@ -6,6 +6,9 @@
 {% block content %}
 <div id="content">
 </div>
-<script type="text/javascript">var list_url = "{{ url_for('api_native.list_files', k=api_key) }}";</script>
+<script type="text/javascript">
+var list_url = "{{ url_for('api_native.list_files', k=api_key) }}";
+var api_key = "{{ api_key }}";
+</script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/frontend.js') }}"></script>
 {% endblock %}

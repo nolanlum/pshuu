@@ -75,3 +75,21 @@ def test_del_removes_file_and_error_codes(client, make_user):
     )
     assert deleted.status_code == 200
     assert "del.txt" not in deleted.data.decode()
+
+
+def test_del_cannot_delete_another_users_file(client, make_user):
+    from db import File
+
+    owner = make_user(username="owner", api_key="owner-key")
+    make_user(username="attacker", api_key="attacker-key")
+    _upload_legacy(client, "owner-key", b"secret", "owned.txt")
+
+    hist = client.post("/api/hist", data={"k": "owner-key"}).data.decode()
+    file_id = hist.splitlines()[1].split(",")[0]
+
+    # Attacker holds a valid key but does not own the file: "-2", survives.
+    resp = client.post(
+        "/api/del", data={"k": "attacker-key", "i": file_id}
+    )
+    assert resp.data == b"-2"
+    assert File.select().where(File.user == owner).count() == 1
