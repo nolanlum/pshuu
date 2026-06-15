@@ -12,7 +12,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "pytest>=8",
+    "pytest>=9.1.0",
 ]
 
 [tool.pytest.ini_options]
